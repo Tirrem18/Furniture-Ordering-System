@@ -1,0 +1,6 @@
+@TheAmCo.Products_HostAddress = http://localhost:5276
+
+GET {{TheAmCo.Products_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
