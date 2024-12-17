@@ -16,10 +16,32 @@ builder.Services.AddSwaggerGen();
 builder.Services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(options =>
-                    {
-                        options.Authority = builder.Configuration["Auth:Authority"];
-                        options.Audience = builder.Configuration["Auth:Audience"];
-                    });
+{
+    options.Authority = builder.Configuration["Auth:Authority"].TrimEnd('/');
+    options.Audience = builder.Configuration["Auth:Audience"];
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["Auth:Authority"],
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["Auth:Audience"],
+        ValidateLifetime = true
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            Console.WriteLine("Token validated successfully.");
+            return Task.CompletedTask;
+        }
+    };
+});
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
