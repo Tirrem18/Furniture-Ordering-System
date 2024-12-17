@@ -3,7 +3,7 @@ on: [push]
 env:
   DOTNET_VERSION: 8.0.x
   BUILD_CONFIGURATION: Release
-  PROJECT_PATH: ./ThAmCo.Products
+  PROJECT_PATH: ./TheAmCo.Products/TheAmCo.Products.csproj
   PUBLISH_PATH: ./myapp
   TESTRESULTS_PATH: ./test-results
 jobs:
