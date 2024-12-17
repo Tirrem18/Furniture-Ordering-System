@@ -3,7 +3,7 @@ on: [push]
 env:
   DOTNET_VERSION: 8.0.x
   BUILD_CONFIGURATION: Release
-  PROJECT_PATH: ./ThAmCo.Products    # set this to the directory path of your project
+  PROJECT_PATH: ./ThAmCo.Products
   PUBLISH_PATH: ./myapp
   TESTRESULTS_PATH: ./test-results
 jobs:
@@ -30,7 +30,7 @@ jobs:
             --logger trx \
             --results-directory $TESTRESULTS_PATH
       - name: Store test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: ${{ env.TESTRESULTS_PATH }}
@@ -42,7 +42,7 @@ jobs:
             --no-build \
             --output $PUBLISH_PATH
       - name: Store build artefact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build
           path: ${{ env.PUBLISH_PATH }}
