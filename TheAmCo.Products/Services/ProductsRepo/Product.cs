@@ -1,6 +1,6 @@
 using System;
 
-namespace TheAmCo.Products.Services.UnderCutters;
+namespace TheAmCo.Products.Services.ProductsRepo;
 
 public class Product
 {

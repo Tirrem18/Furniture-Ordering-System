@@ -1,16 +1,16 @@
 using System;
 
-namespace TheAmCo.Products.Services.UnderCutters;
+namespace TheAmCo.Products.Services.ProductsRepo;
 
-public class ProductRepoFake : IUnderCuttersService
+public class ProductRepoFake : IProductsRepo
 {
-    private readonly ProductDto[] _products=
+    private readonly Product[] _products=
     {
-        new ProductDto {ID = 1, Name = "Repo Placehodler 1"},
-        new ProductDto {ID = 2, Name = "Repo Placehodler 2"},
-        new ProductDto {ID = 3, Name = "Repo Placehodler 3"}
+        new Product {ID = 1, Name = "Repo Placehodler 1"},
+        new Product {ID = 2, Name = "Repo Placehodler 2"},
+        new Product {ID = 3, Name = "Repo Placehodler 3"}
     };
-    public Task<IEnumerable<ProductDto>> GetProductsAsync()
+    public Task<IEnumerable<Product>> GetProductsAsync()
     {
         var products = _products.AsEnumerable();
         return Task.FromResult(products);
