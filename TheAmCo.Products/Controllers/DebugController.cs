@@ -11,10 +11,10 @@ public class DebugController : ControllerBase
     private readonly IUnderCuttersService _underCuttersService;
 
     public DebugController(ILogger<DebugController> logger,
-                           IUnderCuttersService reviewsService)
+                           IUnderCuttersService underCuttersService)
     {
         _logger = logger;
-        _underCuttersService = reviewsService;
+        _underCuttersService = underCuttersService;
     }
 
     
