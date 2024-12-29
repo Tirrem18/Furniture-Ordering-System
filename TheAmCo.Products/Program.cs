@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using TheAmCo.Products.Services.UnderCutters;
+using ThAmCo.Products.Data.Products;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +29,29 @@ if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton<IUnderCuttersService, UnderCuttersServiceFake>();
 }
-
+builder.Services.AddDbContext<ProductsContext>(options =>
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        var folder = Environment.SpecialFolder.LocalApplicationData;
+        var path = Environment.GetFolderPath(folder);
+        var dbPath = System.IO.Path.Join(path, "products.db");
+        options.UseSqlite($"Data Source={dbPath}");
+        options.EnableDetailedErrors();
+        options.EnableSensitiveDataLogging();
+    }
+    else
+    {
+        var cs = builder.Configuration.GetConnectionString("ProductsContext");
+        options.UseSqlServer(cs, sqlServerOptionsAction: sqlOptions =>
+        sqlOptions.EnableRetryOnFailure(
+        maxRetryCount: 5,
+        maxRetryDelay: TimeSpan.FromSeconds(1.5),
+        errorNumbersToAdd: null
+    )
+);
+    }
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
