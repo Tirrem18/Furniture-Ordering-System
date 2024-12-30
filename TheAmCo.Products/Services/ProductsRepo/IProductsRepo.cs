@@ -1,6 +1,6 @@
 using System;
 
-namespace TheAmCo.Products.Services.ProductsRepo;
+namespace ThAmCo.Products.Services.ProductsRepo;
 
 public interface IProductsRepo
 {

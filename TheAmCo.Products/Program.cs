@@ -5,6 +5,7 @@ using System.Security.Claims;
 using TheAmCo.Products.Services.UnderCutters;
 using ThAmCo.Products.Data.Products;
 using Microsoft.EntityFrameworkCore;
+using ThAmCo.Products.Services.ProductsRepo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +53,17 @@ builder.Services.AddDbContext<ProductsContext>(options =>
 );
     }
 });
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSingleton<IUnderCuttersService, UnderCuttersServiceFake>();
+    builder.Services.AddSingleton<IProductsRepo, ProductRepoFake>();
+}
+else
+{
+    builder.Services.AddTransient<IProductsRepo, ProductsRepo>();
+}
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
