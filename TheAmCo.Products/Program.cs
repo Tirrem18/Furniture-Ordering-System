@@ -57,14 +57,35 @@ builder.Services.AddDbContext<ProductsContext>(options =>
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton<IUnderCuttersService, UnderCuttersServiceFake>();
-    builder.Services.AddSingleton<IProductsRepo, ProductRepoFake>();
+    
 }
 else
 {
-    builder.Services.AddTransient<IProductsRepo, ProductsRepo>();
+    
 }
+ builder.Services.AddTransient<IProductsRepo, ProductsRepo>();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var env = services.GetRequiredService<IWebHostEnvironment>();
+    if (env.IsDevelopment())
+    {
+        var context = services.GetRequiredService<ProductsContext>();
+        try
+        {
+            Console.WriteLine("Tirrem Test");
+            ProductsInitialiser.SeedTestData(context).Wait();
+        }
+        catch (Exception e)
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogDebug("Seeding test data failed.");
+        }
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

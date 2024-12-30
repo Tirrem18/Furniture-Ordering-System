@@ -9,7 +9,7 @@ namespace ThAmCo.Products.Services.ProductsRepo
     {
         private readonly ProductsContext _productsContext;
 
-        ProductsRepo(ProductsContext productsContext)
+        public ProductsRepo(ProductsContext productsContext)
         {
             _productsContext = productsContext;
         }
