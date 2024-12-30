@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using TheAmCo.Products.Services.UnderCutters;
-using ThAmCo.Products.Data.Products;
+using TheAmCo.Products.Data.Products;
 using Microsoft.EntityFrameworkCore;
 using ThAmCo.Products.Services.ProductsRepo;
 
@@ -40,6 +40,7 @@ builder.Services.AddDbContext<ProductsContext>(options =>
         options.UseSqlite($"Data Source={dbPath}");
         options.EnableDetailedErrors();
         options.EnableSensitiveDataLogging();
+        Console.WriteLine(dbPath);
     }
     else
     {

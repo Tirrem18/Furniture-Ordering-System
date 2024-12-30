@@ -1,6 +1,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
-using ThAmCo.Products.Data.Products;
+using TheAmCo.Products.Data.Products;
 
 
 namespace ThAmCo.Products.Services.ProductsRepo

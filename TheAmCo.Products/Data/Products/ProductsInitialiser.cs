@@ -1,6 +1,6 @@
 using System;
 
-namespace ThAmCo.Products.Data.Products
+namespace TheAmCo.Products.Data.Products
 {
     public static class ProductsInitialiser
     {

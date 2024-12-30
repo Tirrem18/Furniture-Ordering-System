@@ -1,4 +1,4 @@
-namespace ThAmCo.Products.Data.Products;
+namespace TheAmCo.Products.Data.Products;
 
 public class Product
 {

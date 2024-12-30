@@ -1,7 +1,8 @@
-using System;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System;
 
-namespace ThAmCo.Products.Data.Products
+namespace TheAmCo.Products.Data.Products
 {
     public class ProductsContext : DbContext
     {
@@ -10,6 +11,21 @@ namespace ThAmCo.Products.Data.Products
         public ProductsContext(DbContextOptions<ProductsContext> options)
             : base(options)
         {
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+                // Set the SQLite database path
+                var dbPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                dbPath = System.IO.Path.Combine(dbPath, "products.db");
+                Console.WriteLine($"Using SQLite database at: {dbPath}");
+
+                optionsBuilder.UseSqlite($"Data Source={dbPath}");
+                optionsBuilder.EnableDetailedErrors();
+                optionsBuilder.EnableSensitiveDataLogging();
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder builder)
