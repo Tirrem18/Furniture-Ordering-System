@@ -19,8 +19,10 @@ namespace TheAmCo.Products.Services.UnderCutters
             var uri = "api/product";
             var response = await _client.GetAsync(uri);
             response.EnsureSuccessStatusCode();
-            var reviews = await response.Content.ReadAsAsync<IEnumerable<ProductDto>>();
-            return reviews;
+            
+            var products = await response.Content.ReadAsAsync<IEnumerable<ProductDto>>();
+            return products;
         }
+
     }
 }

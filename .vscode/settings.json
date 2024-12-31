@@ -1,4 +1,5 @@
 {
     "appService.preDeployTask": "publish-release",
-    "appService.deploySubpath": "TheAmCo.Products/bin/Release/net8.0/publish"
+    "appService.deploySubpath": "TheAmCo.Products\\bin\\Release\\net8.0\\publish",
+    "appService.defaultWebAppToDeploy": "/subscriptions/2862da7c-2d8e-4058-b387-2e5175b3082c/resourceGroups/ThAmCo/providers/Microsoft.Web/sites/ThAmCo-CustomerApp"
 }

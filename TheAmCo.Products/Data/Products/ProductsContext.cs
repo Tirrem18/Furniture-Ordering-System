@@ -35,7 +35,12 @@ namespace TheAmCo.Products.Data.Products
             builder.Entity<Product>(p =>
             {
                 p.Property(c => c.Name).IsRequired();
+                p.Property(c => c.Description).HasMaxLength(500);
+                p.Property(c => c.Price).IsRequired();
+                p.Property(c => c.CategoryId).IsRequired();
+                p.Property(c => c.BrandId).IsRequired();
             });
+
         }
     }
 }
