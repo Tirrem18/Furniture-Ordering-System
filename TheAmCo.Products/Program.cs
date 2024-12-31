@@ -9,14 +9,7 @@ using ThAmCo.Products.Services.ProductsRepo;
 using Polly;
 using Polly.Extensions.Http;
 
-IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
-{
-    return HttpPolicyExtensions
-        .HandleTransientHttpError()
-        .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
-        .WaitAndRetryAsync(5, retryAttempt =>
-            TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
-}
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,6 +87,14 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
+        .WaitAndRetryAsync(5, retryAttempt =>
+            TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 }
 
 app.UseHttpsRedirection();
