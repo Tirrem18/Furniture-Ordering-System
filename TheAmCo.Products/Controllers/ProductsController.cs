@@ -157,7 +157,7 @@ public async Task<IEnumerable<TheAmCo.Products.Data.Products.Product>> GetProduc
         }
         else
         {
-            // Add new external product to the repository with 10% markup
+            
             localProducts.Add(new TheAmCo.Products.Data.Products.Product
             {
                 Id = externalProduct.Id,
