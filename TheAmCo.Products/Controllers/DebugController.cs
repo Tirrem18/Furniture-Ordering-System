@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using ThAmCo.Products.Services.ProductsRepo;
+using TheAmCo.Products.Services.DodgeyDealers;
 using TheAmCo.Products.Services.UnderCutters;
 
 namespace ThAmCo.Products.Controllers;
@@ -12,21 +13,23 @@ public class DebugController : ControllerBase
     private readonly ILogger _logger;
     private readonly IUnderCuttersService _underCuttersService;
     private readonly IProductsRepo _productsRepo;
+    private readonly IDodgyDealersService _dodgeyDealersService;
 
     public DebugController(ILogger<DebugController> logger,
                            IUnderCuttersService underCuttersService,
-                           IProductsRepo productRepo)
+                           IProductsRepo productRepo,
+                           IDodgyDealersService dodgeyDealersService) // Added parameter
     {
         _logger = logger;
         _underCuttersService = underCuttersService;
         _productsRepo = productRepo;
+        _dodgeyDealersService = dodgeyDealersService; // Assigned value
     }
 
-    
     [HttpGet("UnderCutters")]
     public async Task<IActionResult> UnderCutters()
     {
-        IEnumerable<ProductDto> products = null!;
+        IEnumerable<TheAmCo.Products.Services.UnderCutters.ProductDto> products = null!;
         try
         {
             products = await _underCuttersService.GetProductsAsync();
@@ -34,12 +37,28 @@ public class DebugController : ControllerBase
         catch
         {
             _logger.LogWarning("Exception occurred using UnderCutters service.");
-            products = Array.Empty<ProductDto>();
+            products = Array.Empty<TheAmCo.Products.Services.UnderCutters.ProductDto>();
         }
         return Ok(products.ToList());
     }
 
-      [HttpGet("repo")]
+    [HttpGet("DodgeyDealers")]
+    public async Task<IActionResult> DodgeyDealers()
+    {
+        IEnumerable<TheAmCo.Products.Services.DodgeyDealers.ProductDto> products = null!;
+        try
+        {
+            products = await _dodgeyDealersService.GetProductsAsync();
+        }
+        catch
+        {
+            _logger.LogWarning("Exception occurred using DodgyDealers service.");
+            products = Array.Empty<TheAmCo.Products.Services.DodgeyDealers.ProductDto>();
+        }
+        return Ok(products.ToList());
+    }
+
+    [HttpGet("repo")]
     public async Task<IActionResult> Repo()
     {
         IEnumerable<Product> products = null!;
@@ -54,5 +73,4 @@ public class DebugController : ControllerBase
         }
         return Ok(products.ToList());
     }
-
 }

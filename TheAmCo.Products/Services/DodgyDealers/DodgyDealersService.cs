@@ -1,12 +1,12 @@
-namespace TheAmCo.Products.Services.UnderCutters
+namespace TheAmCo.Products.Services.DodgeyDealers
 {
-    public class UnderCuttersService : IUnderCuttersService
+    public class DodgyDealersService : IDodgyDealersService
     {
         private readonly HttpClient _client;
 
-        public UnderCuttersService(HttpClient client, IConfiguration configuration)
+        public DodgyDealersService(HttpClient client, IConfiguration configuration)
         {
-            var baseUrl = configuration["WebServices:UnderCutters:BaseURL"] ?? "";
+            var baseUrl = configuration["WebServices:DodgeyDealers:BaseURL"] ?? "";
             client.BaseAddress = new Uri(baseUrl);
             client.Timeout = TimeSpan.FromSeconds(30); // Set a higher timeout to accommodate retries
             client.DefaultRequestHeaders.Add("Accept", "application/json");
@@ -16,8 +16,8 @@ namespace TheAmCo.Products.Services.UnderCutters
         public async Task<IEnumerable<ProductDto>> GetProductsAsync()
         {
             var uri = "api/product";
-            int maxRetries = 10;
-            double delayFactor = 2; // Exponential backoff multiplier
+            int maxRetries = 15;
+            double delayFactor = 2;
 
             for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
@@ -41,7 +41,7 @@ namespace TheAmCo.Products.Services.UnderCutters
             }
 
             // Throw an exception if all retry attempts fail
-            throw new HttpRequestException($"Failed to fetch products from UnderCutters API after {maxRetries} attempts.");
+            throw new HttpRequestException($"Failed to fetch products from DodgyDealers API after {maxRetries} attempts.");
         }
     }
 }
