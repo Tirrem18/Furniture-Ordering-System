@@ -48,7 +48,7 @@ public class DebugController : ControllerBase
         }
         catch
         {
-            _logger.LogWarning("Exception occurred using UnderCutters service.");
+            _logger.LogWarning("Exception occurred using repo service.");
             products = Array.Empty<Product>();
         }
         return Ok(products.ToList());

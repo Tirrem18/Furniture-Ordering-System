@@ -59,7 +59,14 @@ builder.Services.AddDbContext<ProductsContext>(options =>
     }
 });
 
-builder.Services.AddTransient<IProductsRepo, ProductsRepo>();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSingleton<IProductsRepo, ProductRepoFake>();
+}
+else
+{
+    builder.Services.AddTransient<IProductsRepo, ProductsRepo>();
+}
 
 var app = builder.Build();
 

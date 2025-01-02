@@ -15,9 +15,8 @@ namespace TheAmCo.Products.Data.Products
             // Seed database with test data
             var products = new List<Product>
             {
-                new() { Id = 1, Name = "Seeded Test Data product 1" },
-                new() { Id = 2, Name = "Seeded Test Data Test product 2" },
-                new() { Id = 3, Name = "Seeded Test Data Test product 3" },
+                new Product { Id = 1, Name = "Product Placeholder 1", Description = "Sample description 1", Price = 10.99m, InStock = true, CategoryId = 1, CategoryName = "Category A", BrandId = 1, BrandName = "Brand X" },
+                new Product { Id = 2, Name = "Product Placeholder 2", Description = "Sample description 2", Price = 15.99m, InStock = false, ExpectedRestock = DateTime.UtcNow.AddDays(5), CategoryId = 2, CategoryName = "Category B", BrandId = 2, BrandName = "Brand Y" }
             };
             products.ForEach(p => context.Add(p));
             await context.SaveChangesAsync();
