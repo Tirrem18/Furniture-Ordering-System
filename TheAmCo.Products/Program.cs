@@ -36,7 +36,7 @@ if (builder.Environment.IsDevelopment())
 else
 {
     builder.Services.AddHttpClient<IUnderCuttersService, UnderCuttersService>();
-    builder.Services.AddSingleton<IDodgyDealersService, DodgyDealersService>();
+    builder.Services.AddHttpClient<IDodgyDealersService, DodgyDealersService>();
 }
 
 builder.Services.AddDbContext<ProductsContext>(options =>
@@ -103,10 +103,15 @@ if (app.Environment.IsDevelopment())
 IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
 {
     return HttpPolicyExtensions
-        .HandleTransientHttpError()
-        .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
-        .WaitAndRetryAsync(5, retryAttempt =>
-            TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+        .HandleTransientHttpError() // Handle 5xx and 408 errors
+        .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.RequestTimeout)
+        .WaitAndRetryAsync(
+            retryCount: 3,
+            sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), // Exponential backoff
+            onRetry: (outcome, timespan, retryAttempt, context) =>
+            {
+                Console.WriteLine($"Retrying {context.PolicyKey}. Retry attempt {retryAttempt}. Delay: {timespan}");
+            });
 }
 
 app.UseHttpsRedirection();
