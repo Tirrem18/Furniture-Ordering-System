@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using ThAmCo.Products.Services.ProductsRepo;
 using TheAmCo.Products.Services.UnderCutters;
 
@@ -53,4 +54,5 @@ public class DebugController : ControllerBase
         }
         return Ok(products.ToList());
     }
+
 }

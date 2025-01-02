@@ -14,19 +14,29 @@ namespace TheAmCo.Products.Data.Products
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+{
+    if (!optionsBuilder.IsConfigured)
+    {
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        if (environment == "Development")
         {
-            if (!optionsBuilder.IsConfigured)
-            {
-                // Set the SQLite database path
-                var dbPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                dbPath = System.IO.Path.Combine(dbPath, "products.db");
-                Console.WriteLine($"Using SQLite database at: {dbPath}");
-
-                optionsBuilder.UseSqlite($"Data Source={dbPath}");
-                optionsBuilder.EnableDetailedErrors();
-                optionsBuilder.EnableSensitiveDataLogging();
-            }
+            // Use SQLite for development
+            var dbPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            dbPath = System.IO.Path.Combine(dbPath, "products.db");
+            Console.WriteLine($"Using SQLite database at: {dbPath}");
+            optionsBuilder.UseSqlite($"Data Source={dbPath}");
         }
+        else
+        {
+            // Use SQL Server for production
+            var connectionString = "ProductsContext";
+            optionsBuilder.UseSqlServer(connectionString);
+        }
+
+        optionsBuilder.EnableDetailedErrors();
+        optionsBuilder.EnableSensitiveDataLogging();
+    }
+}
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
