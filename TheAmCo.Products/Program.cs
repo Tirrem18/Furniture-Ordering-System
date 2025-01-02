@@ -9,6 +9,7 @@ using ThAmCo.Products.Services.ProductsRepo;
 using Polly;
 using Polly.Extensions.Http;
 using Microsoft.Data.SqlClient;
+using TheAmCo.Products.Services.DodgeyDealers;
 
 
 
@@ -30,10 +31,12 @@ builder.Services.AddAuthorization();
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton<IUnderCuttersService, UnderCuttersServiceFake>();
+    builder.Services.AddSingleton<IDodgyDealersService, DodgyDealersServiceFake>();
 }
 else
 {
     builder.Services.AddHttpClient<IUnderCuttersService, UnderCuttersService>();
+    builder.Services.AddSingleton<IDodgyDealersService, DodgyDealersService>();
 }
 
 builder.Services.AddDbContext<ProductsContext>(options =>
