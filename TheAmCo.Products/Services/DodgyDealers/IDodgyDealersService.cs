@@ -4,5 +4,5 @@ namespace TheAmCo.Products.Services.DodgeyDealers;
 
 public interface IDodgyDealersService
 {
-    Task<IEnumerable<ProductDto>> GetProductsAsync();
+    Task<IEnumerable<TheAmCo.Products.Data.Products.Product>> GetProductsAsync();
 }

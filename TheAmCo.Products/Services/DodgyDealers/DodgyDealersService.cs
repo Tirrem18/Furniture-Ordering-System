@@ -13,7 +13,7 @@ namespace TheAmCo.Products.Services.DodgeyDealers
             _client = client;
         }
 
-        public async Task<IEnumerable<ProductDto>> GetProductsAsync()
+        public async Task<IEnumerable<TheAmCo.Products.Data.Products.Product>> GetProductsAsync()
         {
             var uri = "api/product";
             int maxRetries = 15;
@@ -28,8 +28,8 @@ namespace TheAmCo.Products.Services.DodgeyDealers
                     response.EnsureSuccessStatusCode();
 
                     // Deserialize the response content into ProductDto
-                    var products = await response.Content.ReadFromJsonAsync<IEnumerable<ProductDto>>();
-                    return products ?? Enumerable.Empty<ProductDto>();
+                    var products = await response.Content.ReadFromJsonAsync<IEnumerable<TheAmCo.Products.Data.Products.Product>>();
+                    return products ?? Enumerable.Empty<TheAmCo.Products.Data.Products.Product>();
                 }
                 catch (HttpRequestException ex) when (attempt < maxRetries)
                 {

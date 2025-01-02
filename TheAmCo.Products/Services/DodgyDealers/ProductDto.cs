@@ -2,7 +2,7 @@ namespace TheAmCo.Products.Services.DodgeyDealers;
 
 public class ProductDto
 {
-    public int ID { get; set; }
+    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public decimal Price { get; set; }
@@ -12,4 +12,5 @@ public class ProductDto
     public string CategoryName { get; set; } = string.Empty;
     public int BrandId { get; set; }
     public string BrandName { get; set; } = string.Empty;
+    public string Source { get; set; }
 }
