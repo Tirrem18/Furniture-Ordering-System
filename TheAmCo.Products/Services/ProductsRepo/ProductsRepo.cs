@@ -15,22 +15,23 @@ namespace ThAmCo.Products.Services.ProductsRepo
         }
 
         public async Task<IEnumerable<Product>> GetProductsAsync()
-        {
-           var products = await _productsContext.Products.Select(p => new Product
+{
+    return await _productsContext.Products
+    .Select(p => new Product
     {
-        ID = p.Id,
+        Id = p.Id,
         Name = p.Name,
         Description = p.Description,
         Price = p.Price,
         InStock = p.InStock,
         ExpectedRestock = p.ExpectedRestock,
         CategoryId = p.CategoryId,
-        CategoryName = p.CategoryName,
+        CategoryName = p.CategoryName ?? string.Empty,
         BrandId = p.BrandId,
-        BrandName = p.BrandName
-    }).ToListAsync();
-
-    return products;
+        BrandName = p.BrandName ?? string.Empty
+    })
+    .ToListAsync();
 }
+
     }
 }
