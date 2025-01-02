@@ -8,12 +8,14 @@ using Microsoft.EntityFrameworkCore;
 using ThAmCo.Products.Services.ProductsRepo;
 using Polly;
 using Polly.Extensions.Http;
+using Microsoft.Data.SqlClient;
 
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -110,5 +112,33 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGet("/test-db", async (ProductsContext dbContext) =>
+{
+    try
+    {
+        var result = await dbContext.Products.FirstOrDefaultAsync();
+        return result != null ? $"ID: {result.Id}" : "No data found in the table.";
+    }
+    catch (Exception ex)
+    {
+        return $"Error: {ex.Message} | Inner: {ex.InnerException?.Message}";
+    }
+});
+
+app.MapGet("/test-connection", async () =>
+{
+    var connectionString = "Server=tcp:thamco.database.windows.net,1433;Initial Catalog=ThAmCo.Products;Persist Security Info=False;User ID=thamcoboss@thamco;Password=Password1;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
+    try
+    {
+        using var connection = new SqlConnection(connectionString);
+        await connection.OpenAsync();
+        return "Database connection successful!";
+    }
+    catch (Exception ex)
+    {
+        return $"Database connection failed: {ex.Message}";
+    }
+});
+
 
 app.Run();

@@ -29,7 +29,7 @@ namespace TheAmCo.Products.Data.Products
         else
         {
             // Use SQL Server for production
-            var connectionString = "ProductsContext";
+            var connectionString = "Server=tcp:thamco.database.windows.net,1433;Initial Catalog=ThAmCo.Products;Persist Security Info=False;User ID=thamcoboss@thamco;Password=Password1;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
             optionsBuilder.UseSqlServer(connectionString);
         }
 
@@ -45,10 +45,6 @@ namespace TheAmCo.Products.Data.Products
             builder.Entity<Product>(p =>
             {
                 p.Property(c => c.Name).IsRequired();
-                p.Property(c => c.Description).HasMaxLength(500);
-                p.Property(c => c.Price).IsRequired();
-                p.Property(c => c.CategoryId).IsRequired();
-                p.Property(c => c.BrandId).IsRequired();
             });
 
         }

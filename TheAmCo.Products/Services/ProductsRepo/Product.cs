@@ -1,5 +1,3 @@
-using System;
-
 namespace ThAmCo.Products.Services.ProductsRepo;
 
 public class Product
