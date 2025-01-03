@@ -16,8 +16,8 @@ namespace TheAmCo.Products.Services.DodgeyDealers
         public async Task<IEnumerable<TheAmCo.Products.Data.Products.Product>> GetProductsAsync()
         {
             var uri = "api/product";
-            int maxRetries = 15;
-            double delayFactor = 2;
+            int maxRetries = 25;
+            double delayFactor = 0.5;
 
             for (int attempt = 1; attempt <= maxRetries; attempt++)
             {

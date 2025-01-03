@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using ThAmCo.Products.Services.ProductsRepo;
+using System.Threading.Tasks;
 
 namespace ThAmCo.Products.Controllers;
 
 [ApiController]
-[Route("api/products")]
+[Route("api")]
 public class ProductsController : ControllerBase
 {
     private readonly IProductsRepo _productsRepo;
@@ -14,17 +15,23 @@ public class ProductsController : ControllerBase
         _productsRepo = productsRepo;
     }
 
-    [HttpGet("all")]
-    public async Task<IActionResult> GetAllProducts()
+    [HttpGet("products")]
+    public async Task<IActionResult> GetProducts()
     {
         try
         {
-            var products = await _productsRepo.GetProductsAsync();
-            return Ok(products);
+            var allProducts = await _productsRepo.GetProductsAsync();
+            return Ok(allProducts);
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Handle the specific name mismatch error gracefully
+            return BadRequest(new { Error = ex.Message });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"An error occurred: {ex.Message}");
+            // General error handling
+            return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
         }
     }
 }
