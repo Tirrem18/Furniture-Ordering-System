@@ -135,4 +135,4 @@ namespace TheAmCo.Products.Tests
         // Add simplified tests for GetUnderCuttersProductsAsync, GetDodgyDealersProductsAsync, and GetProductsAsync
     }
 }
-}
+
