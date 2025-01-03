@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using ThAmCo.Products.Services.ProductsRepo;
-using TheAmCo.Products.Data.Products;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ThAmCo.Products.Controllers;
@@ -18,17 +16,22 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("products")]
-public async Task<IActionResult> GetProducts()
-{
-    var localProducts = await _productsRepo.GetLocalProductsAsync();
-    var underCuttersProducts = await _productsRepo.GetUnderCuttersProductsAsync();
-    var dodgyDealersProducts = await _productsRepo.GetDodgyDealersProductsAsync();
-
-    var allProducts = localProducts
-        .Concat(underCuttersProducts)
-        .Concat(dodgyDealersProducts)
-        .ToList();
-
-    return Ok(allProducts);
-}
+    public async Task<IActionResult> GetProducts()
+    {
+        try
+        {
+            var allProducts = await _productsRepo.GetProductsAsync();
+            return Ok(allProducts);
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Handle the specific name mismatch error gracefully
+            return BadRequest(new { Error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            // General error handling
+            return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+        }
+    }
 }

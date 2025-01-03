@@ -39,4 +39,19 @@ public class ProductRepoFake : IProductsRepo
 
         return Task.FromResult(dodgyDealersProducts.AsEnumerable());
     }
+
+public async Task<IEnumerable<Product>> GetProductsAsync()
+    {
+        var localProducts = await GetLocalProductsAsync();
+        var underCuttersProducts = await GetUnderCuttersProductsAsync();
+        var dodgyDealersProducts = await GetDodgyDealersProductsAsync();
+
+        var allProducts = localProducts
+            .Concat(underCuttersProducts)
+            .Concat(dodgyDealersProducts)
+            .ToList();
+
+        return allProducts;
+    }
+
 }

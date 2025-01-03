@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,27 +29,33 @@ public class ProductsRepo : IProductsRepo
 
     public async Task<IEnumerable<Product>> GetUnderCuttersProductsAsync()
     {
-        var products = await _underCuttersService.GetProductsAsync();
-        return products.Select(dto => new Product
-        {
-            Id = dto.Id,
-            Name = dto.Name,
-            Description = dto.Description,
-            Price = dto.Price,
-            InStock = dto.InStock,
-            ExpectedRestock = dto.ExpectedRestock,
-            CategoryId = dto.CategoryId,
-            CategoryName = dto.CategoryName,
-            BrandId = dto.BrandId,
-            BrandName = dto.BrandName,
-            Source = "UnderCutters"
-        });
+        var underCuttersProducts = await _underCuttersService.GetProductsAsync();
+        return underCuttersProducts.Select(dto => MapToProduct(dto));
     }
 
     public async Task<IEnumerable<Product>> GetDodgyDealersProductsAsync()
     {
-        var products = await _dodgyDealersService.GetProductsAsync();
-        return products.Select(dto => new Product
+        var dodgyDealersProducts = await _dodgyDealersService.GetProductsAsync();
+        return dodgyDealersProducts.Select(dto => MapToProduct(dto));
+    }
+
+    public async Task<IEnumerable<Product>> GetProductsAsync()
+    {
+        var localProducts = await GetLocalProductsAsync();
+        var underCuttersProducts = await GetUnderCuttersProductsAsync();
+        var dodgyDealersProducts = await GetDodgyDealersProductsAsync();
+
+        var allProducts = localProducts
+            .Concat(underCuttersProducts)
+            .Concat(dodgyDealersProducts)
+            .ToList();
+
+        return CombineAndProcessProducts(allProducts);
+    }
+
+    private Product MapToProduct(Product dto)
+    {
+        return new Product
         {
             Id = dto.Id,
             Name = dto.Name,
@@ -60,25 +67,24 @@ public class ProductsRepo : IProductsRepo
             CategoryName = dto.CategoryName,
             BrandId = dto.BrandId,
             BrandName = dto.BrandName,
-            Source = "DodgyDealers"
-        });
+            Source = dto.Source
+        };
     }
 
-
-
-    private IEnumerable<TheAmCo.Products.Data.Products.Product> CombineAndProcessProducts(
-        IEnumerable<TheAmCo.Products.Data.Products.Product> localProducts,
-        IEnumerable<TheAmCo.Products.Data.Products.Product> externalProducts)
+    private IEnumerable<Product> CombineAndProcessProducts(IEnumerable<Product> allProducts)
     {
-        return localProducts.Concat(externalProducts)
+        return allProducts
             .GroupBy(p => p.Id)
             .Select(group =>
             {
-                // Find the cheapest product, with external products adjusted by 11% for comparison
+                //if (group.Select(p => p.Name).Distinct().Count() > 1)
+               // {
+                    //throw new InvalidOperationException($"Name mismatch detected for Product ID {group.Key}");
+                //}
+
                 var cheapestProduct = group.OrderBy(p =>
                     p.Source == "Local" ? p.Price : p.Price * 0.89m).First();
 
-                // Add 10% markup if the product is from an external source
                 if (cheapestProduct.Source != "Local")
                 {
                     cheapestProduct.Price = Math.Round(cheapestProduct.Price * 1.10m, 2);
