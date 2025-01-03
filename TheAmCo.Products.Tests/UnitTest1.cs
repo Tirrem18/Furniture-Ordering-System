@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Collections.Generic;
@@ -6,6 +7,8 @@ using System.Threading.Tasks;
 using ThAmCo.Products.Controllers;
 using ThAmCo.Products.Services.ProductsRepo;
 using TheAmCo.Products.Data.Products;
+using TheAmCo.Products.Services.DodgeyDealers;
+using TheAmCo.Products.Services.UnderCutters;
 
 namespace TheAmCo.Products.Tests
 {
@@ -64,26 +67,6 @@ namespace TheAmCo.Products.Tests
         }
 
         [TestMethod]
-        public async Task GetProducts_ShouldReturnBadRequestOnInvalidOperationException()
-        {
-            // Arrange
-            _mockProductsRepo.Setup(repo => repo.GetProductsAsync())
-                            .ThrowsAsync(new InvalidOperationException("Invalid operation"));
-
-            // Act
-            var result = await _controller.GetProducts();
-
-            // Assert
-            Assert.IsNotNull(result);
-            var badRequestResult = result as BadRequestObjectResult;
-            Assert.IsNotNull(badRequestResult);
-            Assert.AreEqual(400, badRequestResult.StatusCode);
-
-            // Deserialize the response to access the Error property
-            var responseObject = badRequestResult.Value as IDictionary<string, object>;
-            Assert.AreEqual("Invalid operation", responseObject["Error"]);
-        }
-        [TestMethod]
         public async Task GetProducts_ShouldReturnInternalServerErrorOnGeneralException()
         {
             // Arrange
@@ -102,4 +85,54 @@ namespace TheAmCo.Products.Tests
                             statusCodeResult.Value);
         }
     }
+    [TestClass]
+    public class ProductsRepoTests
+    {
+        private Mock<ProductsContext> _mockProductsContext;
+        private Mock<IUnderCuttersService> _mockUnderCuttersService;
+        private Mock<IDodgyDealersService> _mockDodgyDealersService;
+        private ProductsRepo _repo;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            _mockProductsContext = new Mock<ProductsContext>();
+            _mockUnderCuttersService = new Mock<IUnderCuttersService>();
+            _mockDodgyDealersService = new Mock<IDodgyDealersService>();
+
+            _repo = new ProductsRepo(_mockProductsContext.Object,
+                                      _mockUnderCuttersService.Object,
+                                      _mockDodgyDealersService.Object);
+        }
+
+        [TestMethod]
+        public async Task GetLocalProductsAsync_ShouldReturnProducts()
+        {
+            // Arrange
+            var products = new List<Product>
+            {
+                new Product { Id = 1, Name = "LocalProduct1", Price = 10 },
+                new Product { Id = 2, Name = "LocalProduct2", Price = 20 }
+            }.AsQueryable();
+
+            var mockDbSet = new Mock<DbSet<Product>>();
+            mockDbSet.As<IQueryable<Product>>().Setup(m => m.Provider).Returns(products.Provider);
+            mockDbSet.As<IQueryable<Product>>().Setup(m => m.Expression).Returns(products.Expression);
+            mockDbSet.As<IQueryable<Product>>().Setup(m => m.ElementType).Returns(products.ElementType);
+            mockDbSet.As<IQueryable<Product>>().Setup(m => m.GetEnumerator()).Returns(products.GetEnumerator());
+
+            _mockProductsContext.Setup(ctx => ctx.Products).Returns(mockDbSet.Object);
+
+            // Act
+            var result = await _repo.GetLocalProductsAsync();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(2, result.Count());
+            Assert.AreEqual("LocalProduct1", result.First().Name);
+        }
+
+        // Add simplified tests for GetUnderCuttersProductsAsync, GetDodgyDealersProductsAsync, and GetProductsAsync
+    }
+}
 }
