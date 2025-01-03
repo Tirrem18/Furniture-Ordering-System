@@ -330,7 +330,6 @@ public class ServiceRegistrationTests
         Assert.IsNotNull(context);
         Assert.IsInstanceOfType(context, typeof(ProductsContext));
     }
-}
 
     [TestMethod]
     public void ShouldRegisterAuthentication()
