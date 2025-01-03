@@ -294,16 +294,43 @@ public class ServiceRegistrationTests
     public void ShouldRegisterProductsRepoInServices()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder(new string[] { });
-        builder.Services.AddTransient<IProductsRepo, ProductsRepo>();
+        var services = new ServiceCollection();
+        var options = new DbContextOptionsBuilder<ProductsContext>()
+            .UseInMemoryDatabase("TestDatabase")
+            .Options;
+
+        services.AddSingleton(new ProductsContext(options));
+        services.AddTransient<IProductsRepo, ProductsRepo>();
 
         // Act
-        var serviceProvider = builder.Services.BuildServiceProvider();
+        var serviceProvider = services.BuildServiceProvider();
+        var repo = serviceProvider.GetService<IProductsRepo>();
 
         // Assert
-        var repo = serviceProvider.GetService<IProductsRepo>();
         Assert.IsNotNull(repo);
+        Assert.IsInstanceOfType(repo, typeof(ProductsRepo));
     }
+
+    [TestMethod]
+    public void ShouldRegisterProductsContextInServices()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var options = new DbContextOptionsBuilder<ProductsContext>()
+            .UseInMemoryDatabase("TestDatabase")
+            .Options;
+
+        services.AddSingleton(new ProductsContext(options));
+
+        // Act
+        var serviceProvider = services.BuildServiceProvider();
+        var context = serviceProvider.GetService<ProductsContext>();
+
+        // Assert
+        Assert.IsNotNull(context);
+        Assert.IsInstanceOfType(context, typeof(ProductsContext));
+    }
+}
 
     [TestMethod]
     public void ShouldRegisterAuthentication()
