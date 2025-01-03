@@ -88,51 +88,46 @@ namespace TheAmCo.Products.Tests
     [TestClass]
     public class ProductsRepoTests
     {
-        private Mock<ProductsContext> _mockProductsContext;
-        private Mock<IUnderCuttersService> _mockUnderCuttersService;
-        private Mock<IDodgyDealersService> _mockDodgyDealersService;
+        private ProductsContext _context;
         private ProductsRepo _repo;
 
         [TestInitialize]
         public void Setup()
         {
-            _mockProductsContext = new Mock<ProductsContext>();
-            _mockUnderCuttersService = new Mock<IUnderCuttersService>();
-            _mockDodgyDealersService = new Mock<IDodgyDealersService>();
+            // Use in-memory database
+            var options = new DbContextOptionsBuilder<ProductsContext>()
+                .UseInMemoryDatabase("TestDatabase")
+                .Options;
 
-            _repo = new ProductsRepo(_mockProductsContext.Object,
-                                      _mockUnderCuttersService.Object,
-                                      _mockDodgyDealersService.Object);
+            _context = new ProductsContext(options);
+            _context.Products.AddRange(
+                new Product { Id = 1, Name = "Product1", Price = 10 },
+                new Product { Id = 2, Name = "Product2", Price = 20 }
+            );
+            _context.SaveChanges();
+
+            _repo = new ProductsRepo(_context, null, null);
         }
 
         [TestMethod]
         public async Task GetLocalProductsAsync_ShouldReturnProducts()
         {
-            // Arrange
-            var products = new List<Product>
-            {
-                new Product { Id = 1, Name = "LocalProduct1", Price = 10 },
-                new Product { Id = 2, Name = "LocalProduct2", Price = 20 }
-            }.AsQueryable();
-
-            var mockDbSet = new Mock<DbSet<Product>>();
-            mockDbSet.As<IQueryable<Product>>().Setup(m => m.Provider).Returns(products.Provider);
-            mockDbSet.As<IQueryable<Product>>().Setup(m => m.Expression).Returns(products.Expression);
-            mockDbSet.As<IQueryable<Product>>().Setup(m => m.ElementType).Returns(products.ElementType);
-            mockDbSet.As<IQueryable<Product>>().Setup(m => m.GetEnumerator()).Returns(products.GetEnumerator());
-
-            _mockProductsContext.Setup(ctx => ctx.Products).Returns(mockDbSet.Object);
-
             // Act
             var result = await _repo.GetLocalProductsAsync();
 
             // Assert
             Assert.IsNotNull(result);
             Assert.AreEqual(2, result.Count());
-            Assert.AreEqual("LocalProduct1", result.First().Name);
+            Assert.IsTrue(result.Any(p => p.Name == "Product1"));
+            Assert.IsTrue(result.Any(p => p.Name == "Product2"));
         }
 
-        // Add simplified tests for GetUnderCuttersProductsAsync, GetDodgyDealersProductsAsync, and GetProductsAsync
+        [TestCleanup]
+        public void Cleanup()
+        {
+            _context.Database.EnsureDeleted();
+            _context.Dispose();
+        }
     }
 }
 
