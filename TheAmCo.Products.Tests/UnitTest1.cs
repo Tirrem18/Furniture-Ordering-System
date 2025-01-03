@@ -1,6 +1,9 @@
 using Castle.Core.Configuration;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Moq.Protected;
@@ -213,4 +216,36 @@ namespace TheAmCo.Products.Tests
             Assert.IsTrue(_context.Products.Any(p => p.Name == "Product Placeholder 1"));
         }
     }
+    [TestClass]
+public class WebApplicationBuilderTests
+{
+    [TestMethod]
+    public void Services_ShouldContainAuthentication()
+    {
+        // Arrange
+        var builder = WebApplication.CreateBuilder(new string[] { });
+
+        // Act
+        builder.Services.AddAuthentication();
+
+        // Assert
+        var serviceProvider = builder.Services.BuildServiceProvider();
+        var authService = serviceProvider.GetService<Microsoft.AspNetCore.Authentication.IAuthenticationService>();
+        Assert.IsNotNull(authService);
+    }
+
+    [TestMethod]
+    public void Environment_ShouldBeDevelopmentOrProduction()
+    {
+        // Arrange
+        var builder = WebApplication.CreateBuilder(new string[] { });
+
+        // Act
+        var env = builder.Environment;
+
+        // Assert
+        Assert.IsTrue(env.IsDevelopment() || env.IsProduction());
+    }
+}
+
 }
