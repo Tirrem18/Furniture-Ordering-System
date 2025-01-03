@@ -37,7 +37,7 @@ namespace ThAmCo.Products.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Exception occurred while fetching products from UnderCutters.");
+                _logger.LogWarning(ex, "Exception occurred while fetching products from UnderCutters");
                 products = Array.Empty<TheAmCo.Products.Data.Products.Product>();
             }
 
