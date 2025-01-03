@@ -247,5 +247,113 @@ public class WebApplicationBuilderTests
         Assert.IsTrue(env.IsDevelopment() || env.IsProduction());
     }
 }
+[TestClass]
+public class DatabaseInitializationTests
+{
+    [TestMethod]
+    public void ProductsContext_ShouldInitializeWithSQLiteInDevelopment()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<ProductsContext>()
+            .UseSqlite("DataSource=:memory:")
+            .Options;
+
+        // Act
+        using var context = new ProductsContext(options);
+
+        // Assert
+        Assert.IsNotNull(context);
+        Assert.IsTrue(context.Database.CanConnect());
+    }
+
+    [TestMethod]
+    public async Task ProductsContext_ShouldSeedDataCorrectly()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<ProductsContext>()
+            .UseInMemoryDatabase("TestDatabase")
+            .Options;
+
+        using var context = new ProductsContext(options);
+        await ProductsInitialiser.SeedTestData(context);
+
+        // Act
+        var products = context.Products.ToList();
+
+        // Assert
+        Assert.AreEqual(2, products.Count);
+        Assert.IsTrue(products.Any(p => p.Name == "Product Placeholder 1"));
+        Assert.IsTrue(products.Any(p => p.Name == "Product Placeholder 2"));
+    }
+}
+[TestClass]
+public class HealthCheckEndpointsTests
+{
+    private HttpClient _client;
+
+    [TestInitialize]
+    public void Setup()
+    {
+        var application = new WebApplicationFactory<Program>();
+        _client = application.CreateClient();
+    }
+
+    [TestMethod]
+    public async Task TestDbEndpoint_ShouldReturnData()
+    {
+        // Act
+        var response = await _client.GetAsync("/test-db");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.IsTrue(content.Contains("ID:") || content.Contains("No data found"));
+    }
+
+    [TestMethod]
+    public async Task TestConnectionEndpoint_ShouldReturnSuccessOrFailure()
+    {
+        // Act
+        var response = await _client.GetAsync("/test-connection");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.IsTrue(content.Contains("successful") || content.Contains("failed"));
+    }
+}
+[TestClass]
+public class ServiceRegistrationTests
+{
+    [TestMethod]
+    public void ShouldRegisterProductsRepoInServices()
+    {
+        // Arrange
+        var builder = WebApplication.CreateBuilder(new string[] { });
+        builder.Services.AddTransient<IProductsRepo, ProductsRepo>();
+
+        // Act
+        var serviceProvider = builder.Services.BuildServiceProvider();
+
+        // Assert
+        var repo = serviceProvider.GetService<IProductsRepo>();
+        Assert.IsNotNull(repo);
+    }
+
+    [TestMethod]
+    public void ShouldRegisterAuthentication()
+    {
+        // Arrange
+        var builder = WebApplication.CreateBuilder(new string[] { });
+        builder.Services.AddAuthentication();
+
+        // Act
+        var serviceProvider = builder.Services.BuildServiceProvider();
+
+        // Assert
+        var authService = serviceProvider.GetService<Microsoft.AspNetCore.Authentication.IAuthenticationService>();
+        Assert.IsNotNull(authService);
+    }
+}
 
 }
