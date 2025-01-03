@@ -295,11 +295,15 @@ public class ServiceRegistrationTests
     {
         // Arrange
         var services = new ServiceCollection();
+
+        // Register dependencies for ProductsRepo
         var options = new DbContextOptionsBuilder<ProductsContext>()
             .UseInMemoryDatabase("TestDatabase")
             .Options;
 
         services.AddSingleton(new ProductsContext(options));
+        services.AddSingleton<IUnderCuttersService>(new Mock<IUnderCuttersService>().Object);
+        services.AddSingleton<IDodgyDealersService>(new Mock<IDodgyDealersService>().Object);
         services.AddTransient<IProductsRepo, ProductsRepo>();
 
         // Act
@@ -316,6 +320,8 @@ public class ServiceRegistrationTests
     {
         // Arrange
         var services = new ServiceCollection();
+
+        // Register ProductsContext
         var options = new DbContextOptionsBuilder<ProductsContext>()
             .UseInMemoryDatabase("TestDatabase")
             .Options;
@@ -330,6 +336,37 @@ public class ServiceRegistrationTests
         Assert.IsNotNull(context);
         Assert.IsInstanceOfType(context, typeof(ProductsContext));
     }
+
+    [TestMethod]
+    public void ShouldRegisterUnderCuttersServiceInServices()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton<IUnderCuttersService>(new Mock<IUnderCuttersService>().Object);
+
+        // Act
+        var serviceProvider = services.BuildServiceProvider();
+        var service = serviceProvider.GetService<IUnderCuttersService>();
+
+        // Assert
+        Assert.IsNotNull(service);
+    }
+
+    [TestMethod]
+    public void ShouldRegisterDodgyDealersServiceInServices()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton<IDodgyDealersService>(new Mock<IDodgyDealersService>().Object);
+
+        // Act
+        var serviceProvider = services.BuildServiceProvider();
+        var service = serviceProvider.GetService<IDodgyDealersService>();
+
+        // Assert
+        Assert.IsNotNull(service);
+    }
+
 
     [TestMethod]
     public void ShouldRegisterAuthentication()
