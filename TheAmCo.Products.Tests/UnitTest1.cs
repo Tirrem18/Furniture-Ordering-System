@@ -177,6 +177,27 @@ namespace TheAmCo.Products.Tests
             _service = new UnderCuttersService(_httpClient, null!); // Pass null for IConfiguration
         }
 
+       [TestClass]
+    public class UnderCuttersServiceTests
+    {
+        private Mock<HttpMessageHandler> _mockHandler;
+        private HttpClient _httpClient;
+        private UnderCuttersService _service;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            _mockHandler = new Mock<HttpMessageHandler>();
+
+            // Create HttpClient with mocked handler
+            _httpClient = new HttpClient(_mockHandler.Object)
+            {
+                BaseAddress = new Uri("http://test-undercutters.com/") // Simplified base URL
+            };
+
+            _service = new UnderCuttersService(_httpClient, "http://test-undercutters.com/");
+        }
+
         [TestMethod]
         public async Task GetProductsAsync_ShouldReturnProducts()
         {
