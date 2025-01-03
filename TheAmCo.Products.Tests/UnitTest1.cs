@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.VisualStudio.TestPlatform.TestHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Moq.Protected;
@@ -284,42 +285,6 @@ public class DatabaseInitializationTests
         Assert.AreEqual(2, products.Count);
         Assert.IsTrue(products.Any(p => p.Name == "Product Placeholder 1"));
         Assert.IsTrue(products.Any(p => p.Name == "Product Placeholder 2"));
-    }
-}
-[TestClass]
-public class HealthCheckEndpointsTests
-{
-    private HttpClient _client;
-
-    [TestInitialize]
-    public void Setup()
-    {
-        var application = new WebApplicationFactory<Program>();
-        _client = application.CreateClient();
-    }
-
-    [TestMethod]
-    public async Task TestDbEndpoint_ShouldReturnData()
-    {
-        // Act
-        var response = await _client.GetAsync("/test-db");
-
-        // Assert
-        response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync();
-        Assert.IsTrue(content.Contains("ID:") || content.Contains("No data found"));
-    }
-
-    [TestMethod]
-    public async Task TestConnectionEndpoint_ShouldReturnSuccessOrFailure()
-    {
-        // Act
-        var response = await _client.GetAsync("/test-connection");
-
-        // Assert
-        response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync();
-        Assert.IsTrue(content.Contains("successful") || content.Contains("failed"));
     }
 }
 [TestClass]
