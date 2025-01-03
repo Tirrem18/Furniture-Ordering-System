@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TheAmCo.Products.Data.Products;
 
@@ -10,9 +11,11 @@ using TheAmCo.Products.Data.Products;
 namespace TheAmCo.Products.Data.Products.Migrations
 {
     [DbContext(typeof(ProductsContext))]
-    partial class ProductsContextModelSnapshot : ModelSnapshot
+    [Migration("20250102202931_AddSourceToProducts")]
+    partial class AddSourceToProducts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");

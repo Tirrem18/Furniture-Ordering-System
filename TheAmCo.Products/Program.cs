@@ -66,7 +66,8 @@ builder.Services.AddDbContext<ProductsContext>(options =>
 
 if (builder.Environment.IsDevelopment())
 {
-    builder.Services.AddSingleton<IProductsRepo, ProductRepoFake>();
+    //builder.Services.AddSingleton<IProductsRepo, ProductRepoFake>();
+    builder.Services.AddTransient<IProductsRepo, ProductsRepo>();
 }
 else
 {

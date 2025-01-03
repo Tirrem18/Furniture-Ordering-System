@@ -29,7 +29,7 @@ public class DebugController : ControllerBase
     [HttpGet("UnderCutters")]
     public async Task<IActionResult> UnderCutters()
     {
-        IEnumerable<TheAmCo.Products.Services.UnderCutters.ProductDto> products = null!;
+        IEnumerable<TheAmCo.Products.Data.Products.Product> products = null!;
         try
         {
             products = await _underCuttersService.GetProductsAsync();
@@ -37,7 +37,7 @@ public class DebugController : ControllerBase
         catch
         {
             _logger.LogWarning("Exception occurred using UnderCutters service.");
-            products = Array.Empty<TheAmCo.Products.Services.UnderCutters.ProductDto>();
+            products = Array.Empty<TheAmCo.Products.Data.Products.Product>();
         }
         return Ok(products.ToList());
     }
@@ -45,7 +45,7 @@ public class DebugController : ControllerBase
     [HttpGet("DodgeyDealers")]
     public async Task<IActionResult> DodgeyDealers()
     {
-        IEnumerable<TheAmCo.Products.Services.DodgeyDealers.ProductDto> products = null!;
+        IEnumerable<TheAmCo.Products.Data.Products.Product> products = null!;
         try
         {
             products = await _dodgeyDealersService.GetProductsAsync();
@@ -53,7 +53,7 @@ public class DebugController : ControllerBase
         catch
         {
             _logger.LogWarning("Exception occurred using DodgyDealers service.");
-            products = Array.Empty<TheAmCo.Products.Services.DodgeyDealers.ProductDto>();
+            products = Array.Empty<TheAmCo.Products.Data.Products.Product>();
         }
         return Ok(products.ToList());
     }
@@ -61,7 +61,7 @@ public class DebugController : ControllerBase
     [HttpGet("repo")]
     public async Task<IActionResult> Repo()
     {
-        IEnumerable<Product> products = null!;
+        IEnumerable<TheAmCo.Products.Data.Products.Product> products = null!;
         try
         {
             products = await _productsRepo.GetProductsAsync();
@@ -69,7 +69,7 @@ public class DebugController : ControllerBase
         catch
         {
             _logger.LogWarning("Exception occurred using repo service.");
-            products = Array.Empty<Product>();
+            products = Array.Empty<TheAmCo.Products.Data.Products.Product>();
         }
         return Ok(products.ToList());
     }
