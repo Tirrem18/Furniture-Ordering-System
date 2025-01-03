@@ -2,7 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Moq.Protected;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using ThAmCo.Products.Controllers;
 using ThAmCo.Products.Services.ProductsRepo;
@@ -152,5 +156,113 @@ namespace TheAmCo.Products.Tests
             _context.Dispose();
         }
     }
+     [TestClass]
+    public class UnderCuttersServiceTests
+    {
+        private Mock<HttpMessageHandler> _mockHandler;
+        private HttpClient _httpClient;
+        private UnderCuttersService _service;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            _mockHandler = new Mock<HttpMessageHandler>();
+
+            // Create HttpClient with mocked handler
+            _httpClient = new HttpClient(_mockHandler.Object)
+            {
+                BaseAddress = new Uri("http://test-undercutters.com/") // Simplified base URL
+            };
+
+            _service = new UnderCuttersService(_httpClient, null!); // Pass null for IConfiguration
+        }
+
+        [TestMethod]
+        public async Task GetProductsAsync_ShouldReturnProducts()
+        {
+            // Arrange
+            var products = new List<Product>
+            {
+                new Product { Id = 1, Name = "Product1", Price = 10, Source = "UnderCutters" },
+                new Product { Id = 2, Name = "Product2", Price = 20, Source = "UnderCutters" }
+            };
+
+            var jsonResponse = JsonSerializer.Serialize(products);
+            var responseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(jsonResponse)
+            };
+
+            _mockHandler.Protected()
+                        .Setup<Task<HttpResponseMessage>>(
+                            "SendAsync",
+                            ItExpr.IsAny<HttpRequestMessage>(),
+                            ItExpr.IsAny<CancellationToken>()
+                        )
+                        .ReturnsAsync(responseMessage);
+
+            // Act
+            var result = await _service.GetProductsAsync();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(2, result.Count());
+            Assert.IsTrue(result.Any(p => p.Name == "Product1"));
+            Assert.IsTrue(result.Any(p => p.Name == "Product2"));
+        }
+
+        [TestMethod]
+        public async Task GetProductsAsync_ShouldHandleEmptyResponse()
+        {
+            // Arrange
+            var responseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent("[]")
+            };
+
+            _mockHandler.Protected()
+                        .Setup<Task<HttpResponseMessage>>(
+                            "SendAsync",
+                            ItExpr.IsAny<HttpRequestMessage>(),
+                            ItExpr.IsAny<CancellationToken>()
+                        )
+                        .ReturnsAsync(responseMessage);
+
+            // Act
+            var result = await _service.GetProductsAsync();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(0, result.Count());
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(HttpRequestException))]
+        public async Task GetProductsAsync_ShouldThrowExceptionForServerError()
+        {
+            // Arrange
+            var responseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.InternalServerError
+            };
+
+            _mockHandler.Protected()
+                        .Setup<Task<HttpResponseMessage>>(
+                            "SendAsync",
+                            ItExpr.IsAny<HttpRequestMessage>(),
+                            ItExpr.IsAny<CancellationToken>()
+                        )
+                        .ReturnsAsync(responseMessage);
+
+            // Act
+            await _service.GetProductsAsync();
+
+            // Assert
+            // Exception is expected, no further assertions needed
+        }
+    }
+    
 }
 

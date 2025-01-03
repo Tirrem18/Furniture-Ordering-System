@@ -62,4 +62,5 @@ namespace ThAmCo.Products.Controllers
             return Ok(products.ToList());
         }
     }
+    
 }
