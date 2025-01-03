@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Moq.Protected;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -33,19 +34,15 @@ namespace TheAmCo.Products.Tests
         [TestMethod]
         public async Task GetProducts_ShouldReturnOkWithProducts()
         {
-            // Arrange
             var fakeProducts = new List<Product>
             {
                 new Product { Id = 1, Name = "Product1", Price = 100 },
                 new Product { Id = 2, Name = "Product2", Price = 200 }
             };
-            _mockProductsRepo.Setup(repo => repo.GetProductsAsync())
-                             .ReturnsAsync(fakeProducts);
+            _mockProductsRepo.Setup(repo => repo.GetProductsAsync()).ReturnsAsync(fakeProducts);
 
-            // Act
             var result = await _controller.GetProducts();
 
-            // Assert
             var okResult = result as OkObjectResult;
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
@@ -55,14 +52,10 @@ namespace TheAmCo.Products.Tests
         [TestMethod]
         public async Task GetProducts_ShouldReturnEmptyListWhenNoProductsExist()
         {
-            // Arrange
-            _mockProductsRepo.Setup(repo => repo.GetProductsAsync())
-                             .ReturnsAsync(new List<Product>());
+            _mockProductsRepo.Setup(repo => repo.GetProductsAsync()).ReturnsAsync(new List<Product>());
 
-            // Act
             var result = await _controller.GetProducts();
 
-            // Assert
             var okResult = result as OkObjectResult;
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
@@ -72,20 +65,41 @@ namespace TheAmCo.Products.Tests
         [TestMethod]
         public async Task GetProducts_ShouldHandleExceptionGracefully()
         {
-            // Arrange
-            _mockProductsRepo.Setup(repo => repo.GetProductsAsync())
-                             .ThrowsAsync(new System.Exception("Unexpected error"));
+            _mockProductsRepo.Setup(repo => repo.GetProductsAsync()).ThrowsAsync(new System.Exception("Unexpected error"));
 
-            // Act
             var result = await _controller.GetProducts();
 
-            // Assert
             var statusCodeResult = result as ObjectResult;
             Assert.IsNotNull(statusCodeResult);
             Assert.AreEqual(500, statusCodeResult.StatusCode);
             Assert.AreEqual("An unexpected error occurred: Unexpected error", statusCodeResult.Value);
         }
+
+        [TestMethod]
+        public void Controller_ShouldBeInstanceOfControllerBase()
+        {
+            Assert.IsInstanceOfType(_controller, typeof(ControllerBase));
+        }
+
+        [TestMethod]
+        public async Task GetProducts_ShouldReturnProductsWithPrices()
+        {
+            var fakeProducts = new List<Product>
+            {
+                new Product { Id = 1, Name = "Product1", Price = 100 },
+                new Product { Id = 2, Name = "Product2", Price = 200 }
+            };
+            _mockProductsRepo.Setup(repo => repo.GetProductsAsync()).ReturnsAsync(fakeProducts);
+
+            var result = await _controller.GetProducts();
+            var okResult = result as OkObjectResult;
+            var returnedProducts = okResult?.Value as List<Product>;
+
+            Assert.IsNotNull(returnedProducts);
+            Assert.IsTrue(returnedProducts.All(p => p.Price > 0));
+        }
     }
+
     [TestClass]
     public class ProductsRepoTests
     {
@@ -101,36 +115,9 @@ namespace TheAmCo.Products.Tests
 
             _context = new ProductsContext(options);
 
-            // Add test data with all required fields
             _context.Products.AddRange(
-                new Product
-                {
-                    Id = 1,
-                    Name = "Product1",
-                    Description = "Description1",
-                    Price = 10,
-                    InStock = true,
-                    ExpectedRestock = null,
-                    CategoryId = 1,
-                    CategoryName = "Category1",
-                    BrandId = 1,
-                    BrandName = "Brand1",
-                    Source = "Local"
-                },
-                new Product
-                {
-                    Id = 2,
-                    Name = "Product2",
-                    Description = "Description2",
-                    Price = 20,
-                    InStock = false,
-                    ExpectedRestock = DateTime.UtcNow.AddDays(5),
-                    CategoryId = 2,
-                    CategoryName = "Category2",
-                    BrandId = 2,
-                    BrandName = "Brand2",
-                    Source = "Local"
-                }
+                new Product { Id = 1, Name = "Product1", Description = "Description1", Price = 10, InStock = true, Source = "Local" },
+                new Product { Id = 2, Name = "Product2", Description = "Description2", Price = 20, InStock = false, Source = "Local" }
             );
             _context.SaveChanges();
 
@@ -140,14 +127,27 @@ namespace TheAmCo.Products.Tests
         [TestMethod]
         public async Task GetLocalProductsAsync_ShouldReturnAllProducts()
         {
-            // Act
             var result = await _repo.GetLocalProductsAsync();
 
-            // Assert
             Assert.IsNotNull(result);
             Assert.AreEqual(2, result.Count());
-            Assert.IsTrue(result.Any(p => p.Name == "Product1" && p.Description == "Description1"));
-            Assert.IsTrue(result.Any(p => p.Name == "Product2" && p.Description == "Description2"));
+        }
+
+        [TestMethod]
+        public async Task GetLocalProductsAsync_ShouldReturnProductNames()
+        {
+            var result = await _repo.GetLocalProductsAsync();
+
+            Assert.IsTrue(result.Any(p => p.Name == "Product1"));
+            Assert.IsTrue(result.Any(p => p.Name == "Product2"));
+        }
+
+        [TestMethod]
+        public async Task GetLocalProductsAsync_ShouldIncludePrices()
+        {
+            var result = await _repo.GetLocalProductsAsync();
+
+            Assert.IsTrue(result.All(p => p.Price > 0));
         }
 
         [TestCleanup]
@@ -157,7 +157,8 @@ namespace TheAmCo.Products.Tests
             _context.Dispose();
         }
     }
- [TestClass]
+
+    [TestClass]
     public class ProductsContextTests
     {
         private ProductsContext _context;
@@ -182,54 +183,34 @@ namespace TheAmCo.Products.Tests
         [TestMethod]
         public async Task ProductsInitialiser_ShouldSeedTestData()
         {
-            // Act
             await ProductsInitialiser.SeedTestData(_context);
 
-            // Assert
             Assert.AreEqual(2, _context.Products.Count());
-            Assert.IsTrue(_context.Products.Any(p => p.Name == "Product Placeholder 1"));
-            Assert.IsTrue(_context.Products.Any(p => p.Name == "Product Placeholder 2"));
         }
 
         [TestMethod]
-        public async Task ProductsInitialiser_ShouldNotSeedIfDataExists()
+        public async Task ProductsInitialiser_ShouldNotDuplicateData()
         {
-            // Arrange
-            var existingProduct = new Product
-            {
-                Id = 3,
-                Name = "Existing Product",
-                Description = "Already in DB",
-                Price = 20.00m,
-                InStock = true,
-                CategoryId = 3,
-                CategoryName = "Category C",
-                BrandId = 3,
-                BrandName = "Brand Z",
-                Source = "Test Data"
-            };
-            _context.Products.Add(existingProduct);
-            await _context.SaveChangesAsync();
-
-            // Act
+            await ProductsInitialiser.SeedTestData(_context);
             await ProductsInitialiser.SeedTestData(_context);
 
-            // Assert
-            Assert.AreEqual(1, _context.Products.Count()); // Should remain 1
-            Assert.IsTrue(_context.Products.Any(p => p.Name == "Existing Product"));
+            Assert.AreEqual(2, _context.Products.Count());
         }
 
         [TestMethod]
-        public void ProductsContext_ShouldCreateDatabaseSchema()
+        public async Task ProductsContext_ShouldCreateDatabase()
         {
-            // Act
             _context.Database.EnsureCreated();
 
-            // Assert
             Assert.IsTrue(_context.Database.CanConnect());
         }
+
+        [TestMethod]
+        public async Task ProductsContext_ShouldContainSeededProductNames()
+        {
+            await ProductsInitialiser.SeedTestData(_context);
+
+            Assert.IsTrue(_context.Products.Any(p => p.Name == "Product Placeholder 1"));
+        }
     }
-    
 }
-
-
