@@ -41,15 +41,14 @@ namespace TheAmCo.Products.Tests
             var result = await _controller.GetProducts();
 
             // Assert
-            Assert.IsNotNull(result);
             var okResult = result as OkObjectResult;
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            Assert.AreEqual(fakeProducts, okResult.Value);
+            CollectionAssert.AreEqual(fakeProducts, (List<Product>)okResult.Value);
         }
 
         [TestMethod]
-        public async Task GetProducts_ShouldHandleNoProductsGracefully()
+        public async Task GetProducts_ShouldReturnEmptyListWhenNoProductsExist()
         {
             // Arrange
             _mockProductsRepo.Setup(repo => repo.GetProductsAsync())
@@ -59,7 +58,6 @@ namespace TheAmCo.Products.Tests
             var result = await _controller.GetProducts();
 
             // Assert
-            Assert.IsNotNull(result);
             var okResult = result as OkObjectResult;
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
@@ -67,22 +65,20 @@ namespace TheAmCo.Products.Tests
         }
 
         [TestMethod]
-        public async Task GetProducts_ShouldReturnInternalServerErrorOnGeneralException()
+        public async Task GetProducts_ShouldHandleExceptionGracefully()
         {
             // Arrange
             _mockProductsRepo.Setup(repo => repo.GetProductsAsync())
-                             .ThrowsAsync(new Exception("Unexpected error"));
+                             .ThrowsAsync(new System.Exception("Unexpected error"));
 
             // Act
             var result = await _controller.GetProducts();
 
             // Assert
-            Assert.IsNotNull(result);
             var statusCodeResult = result as ObjectResult;
             Assert.IsNotNull(statusCodeResult);
             Assert.AreEqual(500, statusCodeResult.StatusCode);
-            Assert.AreEqual("An unexpected error occurred: Unexpected error",
-                            statusCodeResult.Value);
+            Assert.AreEqual("An unexpected error occurred: Unexpected error", statusCodeResult.Value);
         }
     }
     [TestClass]
@@ -94,9 +90,8 @@ namespace TheAmCo.Products.Tests
         [TestInitialize]
         public void Setup()
         {
-            // Use in-memory database
             var options = new DbContextOptionsBuilder<ProductsContext>()
-                .UseInMemoryDatabase("TestDatabase")
+                .UseInMemoryDatabase(databaseName: "TestDatabase")
                 .Options;
 
             _context = new ProductsContext(options);
@@ -110,7 +105,7 @@ namespace TheAmCo.Products.Tests
         }
 
         [TestMethod]
-        public async Task GetLocalProductsAsync_ShouldReturnProducts()
+        public async Task GetLocalProductsAsync_ShouldReturnAllProducts()
         {
             // Act
             var result = await _repo.GetLocalProductsAsync();
