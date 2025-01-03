@@ -8,7 +8,7 @@ namespace TheAmCo.Products.Services.DodgeyDealers
         {
             var baseUrl = configuration["WebServices:DodgeyDealers:BaseURL"] ?? "";
             client.BaseAddress = new Uri(baseUrl);
-            client.Timeout = TimeSpan.FromSeconds(30); // Set a higher timeout to accommodate retries
+            client.Timeout = TimeSpan.FromSeconds(30);
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             _client = client;
         }

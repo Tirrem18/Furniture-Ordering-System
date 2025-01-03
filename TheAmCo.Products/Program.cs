@@ -38,7 +38,7 @@ else
     builder.Services.AddHttpClient<IUnderCuttersService, UnderCuttersService>();
     builder.Services.AddHttpClient<IDodgyDealersService, DodgyDealersService>();
 }
-
+builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddDbContext<ProductsContext>(options =>
 {
     if (builder.Environment.IsDevelopment())

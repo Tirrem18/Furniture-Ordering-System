@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ThAmCo.Products.Services.ProductsRepo;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ThAmCo.Products.Controllers;
 
@@ -14,7 +15,12 @@ public class ProductsController : ControllerBase
     {
         _productsRepo = productsRepo;
     }
-
+    [Authorize(Roles = "User")] // Restrict access to users with the "User" role
+        [HttpGet("order")]
+        public IActionResult GetRestrictedData()
+        {
+            return Ok(new { Message = "Users can Order Products after implementation" });
+        }
     [HttpGet("products")]
     public async Task<IActionResult> GetProducts()
     {
