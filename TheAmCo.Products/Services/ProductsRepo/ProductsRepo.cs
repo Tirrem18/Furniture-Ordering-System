@@ -22,84 +22,74 @@ namespace ThAmCo.Products.Services.ProductsRepo
             _dodgyDealersService = dodgyDealersService;
         }
 
-       public async Task<IEnumerable<TheAmCo.Products.Data.Products.Product>> GetProductsAsync()
-{
-    // Fetch local products from SQL database
-    var localProducts = await _productsContext.Products.ToListAsync();
-
-    // Fetch external products and map to the database Product type
-    var underCuttersProducts = (await _underCuttersService.GetProductsAsync())
-        .Select(dto => new TheAmCo.Products.Data.Products.Product
+        public async Task<IEnumerable<TheAmCo.Products.Data.Products.Product>> GetProductsAsync()
         {
-            Id = dto.Id,
-            Name = dto.Name,
-            Description = dto.Description,
-            Price = dto.Price,
-            InStock = dto.InStock,
-            ExpectedRestock = dto.ExpectedRestock,
-            CategoryId = dto.CategoryId,
-            CategoryName = dto.CategoryName,
-            BrandId = dto.BrandId,
-            BrandName = dto.BrandName
-        })
-        .ToList();
-        Console.WriteLine($"UnderCutters Products Count: {underCuttersProducts.Count}");
+            // Fetch local products from SQL database
+            var localProducts = await _productsContext.Products.ToListAsync();
 
-    var dodgyDealersProducts = (await _dodgyDealersService.GetProductsAsync())
-        .Select(dto => new TheAmCo.Products.Data.Products.Product
-        {
-            Id = dto.Id,
-            Name = dto.Name,
-            Description = dto.Description,
-            Price = dto.Price,
-            InStock = dto.InStock,
-            ExpectedRestock = dto.ExpectedRestock,
-            CategoryId = dto.CategoryId,
-            CategoryName = dto.CategoryName,
-            BrandId = dto.BrandId,
-            BrandName = dto.BrandName
-        })
-        .ToList();
+            // Fetch external products
+            var externalProducts = await FetchExternalProductsAsync();
 
-    // Combine local and external products
-    var allProducts = localProducts
-        .Concat(underCuttersProducts)
-        .Concat(dodgyDealersProducts)
-        .ToList();
-        Console.WriteLine("Final Products:");
-        foreach (var product in localProducts)
-        {
-            Console.WriteLine($"Id: {product.Id}, Name: {product.Name}, Price: {product.Price}, Source: {(product.Id < 4 ? "Local" : "External")}");
+            // Combine and deduplicate products
+            var mergedProducts = MergeAndProcessProducts(localProducts, externalProducts);
+
+            // Save merged products to the database
+            await SaveToDatabaseAsync(mergedProducts);
+
+            return mergedProducts;
         }
 
-    // Deduplicate and apply pricing logic
-    var distinctProducts = allProducts
-        .GroupBy(p => p.Name) // Group by product name
-        .Select(g =>
+        private async Task<List<TheAmCo.Products.Data.Products.Product>> FetchExternalProductsAsync()
         {
-            // Find the cheapest product using 11% reduction for external products
-            var cheapestProduct = g.OrderBy(p =>
+            var underCuttersProducts = await _underCuttersService.GetProductsAsync();
+            var dodgyDealersProducts = await _dodgyDealersService.GetProductsAsync();
+
+            // Map external DTOs to the database Product type
+            return underCuttersProducts.Concat(dodgyDealersProducts)
+                .Select(dto => new TheAmCo.Products.Data.Products.Product
+                {
+                    Id = dto.Id,
+                    Name = dto.Name,
+                    Description = dto.Description,
+                    Price = dto.Price,
+                    InStock = dto.InStock,
+                    ExpectedRestock = dto.ExpectedRestock,
+                    CategoryId = dto.CategoryId,
+                    CategoryName = dto.CategoryName,
+                    BrandId = dto.BrandId,
+                    BrandName = dto.BrandName,
+                    Source = dto.Source
+                })
+                .ToList();
+        }
+
+        private List<TheAmCo.Products.Data.Products.Product> MergeAndProcessProducts(
+            List<TheAmCo.Products.Data.Products.Product> localProducts,
+            List<TheAmCo.Products.Data.Products.Product> externalProducts)
+        {
+            var allProducts = localProducts.Concat(externalProducts).ToList();
+
+            return allProducts.GroupBy(p => p.Name).Select(group =>
             {
-                // Reduce external product prices by 11% for comparison
-                return localProducts.Any(lp => lp.Name == p.Name) ? p.Price : p.Price * 0.89m;
-            }).First();
+                // Find the cheapest product
+                var cheapestProduct = group.OrderBy(p =>
+                    p.Source == "Local" ? p.Price : p.Price * 0.89m).First();
 
-            // Apply 10% markup if the product is external or replaced
-            if (!localProducts.Any(lp => lp.Name == cheapestProduct.Name) || cheapestProduct.Price < g.First().Price)
-            {
-                cheapestProduct.Price = Math.Round(cheapestProduct.Price * 1.10m, 2); // Add 10% markup
-            }
+                // Apply 10% markup if the product is from an external source
+                if (cheapestProduct.Source != "Local")
+                {
+                    cheapestProduct.Price = Math.Round(cheapestProduct.Price * 1.10m, 2);
+                }
 
-            return cheapestProduct;
-        })
-        .ToList();
+                return cheapestProduct;
+            }).ToList();
+        }
 
-    return (IEnumerable<TheAmCo.Products.Data.Products.Product>)distinctProducts;
-}
-
-
-
-
-
+        private async Task SaveToDatabaseAsync(IEnumerable<TheAmCo.Products.Data.Products.Product> products)
+        {
+            _productsContext.Products.RemoveRange(_productsContext.Products);
+            _productsContext.Products.AddRange((TheAmCo.Products.Data.Products.Product)products);
+            await _productsContext.SaveChangesAsync();
+        }
     }
 }
