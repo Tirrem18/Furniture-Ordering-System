@@ -1,7 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy ASP.Net Core app to Azure Web App - TheAmCoProducts
+name: Build, Test, and Deploy ASP.Net Core App to Azure Web App - TheAmCoProducts
 
 on:
   push:
@@ -9,29 +6,69 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  DOTNET_VERSION: 8.0.x
+  BUILD_CONFIGURATION: Release
+  PROJECT_PATH: ./TheAmCo.Products/TheAmCo.Products.csproj
+  PUBLISH_PATH: ./myapp
+  TESTRESULTS_PATH: ./test-results
+
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout Code
       - uses: actions/checkout@v4
 
-      - name: Set up .NET Core
+      # Step 2: Install .NET
+      - name: Install .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
+      # Step 3: Restore Dependencies
+      - name: Restore dependencies
+        run: dotnet restore
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+      # Step 4: Build Code
+      - name: Build code
+        run: |
+          dotnet build \
+            --configuration $BUILD_CONFIGURATION \
+            --no-restore
 
-      - name: Upload artifact for deployment job
+      # Step 5: Run Unit Tests
+      - name: Run unit tests
+        run: |
+          dotnet test \
+            --configuration $BUILD_CONFIGURATION \
+            --no-build \
+            --logger trx \
+            --results-directory $TESTRESULTS_PATH
+
+      # Step 6: Upload Test Results
+      - name: Store test results
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          name: test-results
+          path: ${{ env.TESTRESULTS_PATH }}
+        if: ${{ always() }} # Ensures test results are uploaded even after failure
+
+      # Step 7: Publish Build
+      - name: Package build
+        run: |
+          dotnet publish $PROJECT_PATH \
+            --configuration $BUILD_CONFIGURATION \
+            --no-build \
+            --output $PUBLISH_PATH
+
+      # Step 8: Upload Build Artifact
+      - name: Store build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: ${{ env.PUBLISH_PATH }}
 
   deploy:
     runs-on: windows-latest
@@ -40,14 +77,17 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
+      id-token: write # Required for requesting the JWT
 
     steps:
+      # Step 1: Download Build Artifact
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
-      
+          name: build
+          path: ./myapp # Ensure the artifact is downloaded to the correct path
+
+      # Step 2: Login to Azure
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -55,11 +95,11 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_4214EA8105C14B60B0D914E5C74A520A }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_AA8DC53792D94615881F6135FD9C699E }}
 
+      # Step 3: Deploy to Azure Web App
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'TheAmCoProducts'
           slot-name: 'Production'
-          package: .
-          
+          package: ./myapp # Use the correct path to the downloaded artifact
