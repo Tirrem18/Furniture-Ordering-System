@@ -68,7 +68,7 @@ namespace TheAmCo.Products.Tests
         {
             // Arrange
             _mockProductsRepo.Setup(repo => repo.GetProductsAsync())
-                             .ThrowsAsync(new InvalidOperationException("Invalid operation"));
+                            .ThrowsAsync(new InvalidOperationException("Invalid operation"));
 
             // Act
             var result = await _controller.GetProducts();
@@ -78,9 +78,11 @@ namespace TheAmCo.Products.Tests
             var badRequestResult = result as BadRequestObjectResult;
             Assert.IsNotNull(badRequestResult);
             Assert.AreEqual(400, badRequestResult.StatusCode);
-            Assert.AreEqual("Invalid operation", ((dynamic)badRequestResult.Value).Error);
-        }
 
+            // Deserialize the response to access the Error property
+            var responseObject = badRequestResult.Value as IDictionary<string, object>;
+            Assert.AreEqual("Invalid operation", responseObject["Error"]);
+        }
         [TestMethod]
         public async Task GetProducts_ShouldReturnInternalServerErrorOnGeneralException()
         {
