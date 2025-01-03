@@ -95,9 +95,37 @@ namespace TheAmCo.Products.Tests
                 .Options;
 
             _context = new ProductsContext(options);
+
+            // Add test data with all required fields
             _context.Products.AddRange(
-                new Product { Id = 1, Name = "Product1", Price = 10 },
-                new Product { Id = 2, Name = "Product2", Price = 20 }
+                new Product
+                {
+                    Id = 1,
+                    Name = "Product1",
+                    Description = "Description1",
+                    Price = 10,
+                    InStock = true,
+                    ExpectedRestock = null,
+                    CategoryId = 1,
+                    CategoryName = "Category1",
+                    BrandId = 1,
+                    BrandName = "Brand1",
+                    Source = "Local"
+                },
+                new Product
+                {
+                    Id = 2,
+                    Name = "Product2",
+                    Description = "Description2",
+                    Price = 20,
+                    InStock = false,
+                    ExpectedRestock = DateTime.UtcNow.AddDays(5),
+                    CategoryId = 2,
+                    CategoryName = "Category2",
+                    BrandId = 2,
+                    BrandName = "Brand2",
+                    Source = "Local"
+                }
             );
             _context.SaveChanges();
 
@@ -113,8 +141,8 @@ namespace TheAmCo.Products.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.AreEqual(2, result.Count());
-            Assert.IsTrue(result.Any(p => p.Name == "Product1"));
-            Assert.IsTrue(result.Any(p => p.Name == "Product2"));
+            Assert.IsTrue(result.Any(p => p.Name == "Product1" && p.Description == "Description1"));
+            Assert.IsTrue(result.Any(p => p.Name == "Product2" && p.Description == "Description2"));
         }
 
         [TestCleanup]
