@@ -1,11 +1,9 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using TheAmCo.Products.Data.Products;
+using System;
 
-namespace ThAmCo.Products.Services.ProductsRepo
+
+namespace ThAmCo.Products.Services.ProductsRepo;
+
+public interface IProductsRepo
 {
-    public interface IProductsRepo
-    {
-        Task<IEnumerable<TheAmCo.Products.Data.Products.Product>> GetProductsAsync();
-    }
+    Task<IEnumerable<TheAmCo.Products.Data.Products.Product>> GetProductsAsync();
 }
