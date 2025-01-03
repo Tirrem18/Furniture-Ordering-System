@@ -77,10 +77,6 @@ public class ProductsRepo : IProductsRepo
             .GroupBy(p => p.Id)
             .Select(group =>
             {
-                //if (group.Select(p => p.Name).Distinct().Count() > 1)
-               // {
-                    //throw new InvalidOperationException($"Name mismatch detected for Product ID {group.Key}");
-                //}
 
                 var cheapestProduct = group.OrderBy(p =>
                     p.Source == "Local" ? p.Price : p.Price * 0.89m).First();
