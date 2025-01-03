@@ -165,7 +165,6 @@ namespace TheAmCo.Products.Tests
         [TestInitialize]
         public void Setup()
         {
-            // Use an in-memory database for testing
             var options = new DbContextOptionsBuilder<ProductsContext>()
                 .UseInMemoryDatabase(databaseName: "TestDatabase")
                 .Options;
@@ -196,7 +195,19 @@ namespace TheAmCo.Products.Tests
         public async Task ProductsInitialiser_ShouldNotSeedIfDataExists()
         {
             // Arrange
-            var existingProduct = new Product { Id = 3, Name = "Existing Product", Price = 20.00m };
+            var existingProduct = new Product
+            {
+                Id = 3,
+                Name = "Existing Product",
+                Description = "Already in DB",
+                Price = 20.00m,
+                InStock = true,
+                CategoryId = 3,
+                CategoryName = "Category C",
+                BrandId = 3,
+                BrandName = "Brand Z",
+                Source = "Test Data"
+            };
             _context.Products.Add(existingProduct);
             await _context.SaveChangesAsync();
 
@@ -217,7 +228,7 @@ namespace TheAmCo.Products.Tests
             // Assert
             Assert.IsTrue(_context.Database.CanConnect());
         }
-    }  
+    }
     
 }
 
