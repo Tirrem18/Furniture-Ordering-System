@@ -4,9 +4,11 @@ namespace TheAmCo.Products.Services.UnderCutters
     {
         private readonly HttpClient _client;
 
-        public UnderCuttersService(HttpClient client, IConfiguration configuration)
+        public UnderCuttersService(HttpClient client, string baseUrl)
         {
-            var baseUrl = configuration["WebServices:UnderCutters:BaseURL"] ?? "";
+            if (string.IsNullOrWhiteSpace(baseUrl))
+                throw new ArgumentException("Base URL cannot be null or empty", nameof(baseUrl));
+
             client.BaseAddress = new Uri(baseUrl);
             client.Timeout = TimeSpan.FromSeconds(30); // Set a higher timeout to accommodate retries
             client.DefaultRequestHeaders.Add("Accept", "application/json");
@@ -17,7 +19,7 @@ namespace TheAmCo.Products.Services.UnderCutters
         {
             var uri = "api/product";
             int maxRetries = 10;
-            double delayFactor = 2; 
+            double delayFactor = 2;
 
             for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
