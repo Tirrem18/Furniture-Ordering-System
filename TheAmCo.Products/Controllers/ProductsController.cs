@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using ThAmCo.Products.Services.ProductsRepo;
+using TheAmCo.Products.Data.Products;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ThAmCo.Products.Controllers;
 
 [ApiController]
-[Route("api/products")]
+[Route("api")]
 public class ProductsController : ControllerBase
 {
     private readonly IProductsRepo _productsRepo;
@@ -14,17 +17,18 @@ public class ProductsController : ControllerBase
         _productsRepo = productsRepo;
     }
 
-    [HttpGet("all")]
-    public async Task<IActionResult> GetAllProducts()
-    {
-        try
-        {
-            var products = await _productsRepo.GetProductsAsync();
-            return Ok(products);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"An error occurred: {ex.Message}");
-        }
-    }
+    [HttpGet("products")]
+public async Task<IActionResult> GetProducts()
+{
+    var localProducts = await _productsRepo.GetLocalProductsAsync();
+    var underCuttersProducts = await _productsRepo.GetUnderCuttersProductsAsync();
+    var dodgyDealersProducts = await _productsRepo.GetDodgyDealersProductsAsync();
+
+    var allProducts = localProducts
+        .Concat(underCuttersProducts)
+        .Concat(dodgyDealersProducts)
+        .ToList();
+
+    return Ok(allProducts);
+}
 }

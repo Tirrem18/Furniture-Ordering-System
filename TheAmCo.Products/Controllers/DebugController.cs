@@ -57,20 +57,4 @@ public class DebugController : ControllerBase
         }
         return Ok(products.ToList());
     }
-
-    [HttpGet("repo")]
-    public async Task<IActionResult> Repo()
-    {
-        IEnumerable<TheAmCo.Products.Data.Products.Product> products = null!;
-        try
-        {
-            products = await _productsRepo.GetProductsAsync();
-        }
-        catch
-        {
-            _logger.LogWarning("Exception occurred using repo service.");
-            products = Array.Empty<TheAmCo.Products.Data.Products.Product>();
-        }
-        return Ok(products.ToList());
-    }
 }
