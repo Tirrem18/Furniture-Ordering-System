@@ -157,20 +157,67 @@ namespace TheAmCo.Products.Tests
             _context.Dispose();
         }
     }
-
-       [TestClass]
-    public class UnderCuttersServiceTests
+ [TestClass]
+    public class ProductsContextTests
     {
+        private ProductsContext _context;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            // Use an in-memory database for testing
+            var options = new DbContextOptionsBuilder<ProductsContext>()
+                .UseInMemoryDatabase(databaseName: "TestDatabase")
+                .Options;
+
+            _context = new ProductsContext(options);
+        }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            _context.Database.EnsureDeleted();
+            _context.Dispose();
+        }
+
         [TestMethod]
-        public async Task GetProductsAsync_ShouldWorkWithDummyClient()
+        public async Task ProductsInitialiser_ShouldSeedTestData()
+        {
+            // Act
+            await ProductsInitialiser.SeedTestData(_context);
+
+            // Assert
+            Assert.AreEqual(2, _context.Products.Count());
+            Assert.IsTrue(_context.Products.Any(p => p.Name == "Product Placeholder 1"));
+            Assert.IsTrue(_context.Products.Any(p => p.Name == "Product Placeholder 2"));
+        }
+
+        [TestMethod]
+        public async Task ProductsInitialiser_ShouldNotSeedIfDataExists()
         {
             // Arrange
-            var httpClient = new HttpClient(); //
-            var service = new UnderCuttersService(httpClient, null);
+            var existingProduct = new Product { Id = 3, Name = "Existing Product", Price = 20.00m };
+            _context.Products.Add(existingProduct);
+            await _context.SaveChangesAsync();
 
-            await Task.CompletedTask; 
+            // Act
+            await ProductsInitialiser.SeedTestData(_context);
+
+            // Assert
+            Assert.AreEqual(1, _context.Products.Count()); // Should remain 1
+            Assert.IsTrue(_context.Products.Any(p => p.Name == "Existing Product"));
         }
-    }
+
+        [TestMethod]
+        public void ProductsContext_ShouldCreateDatabaseSchema()
+        {
+            // Act
+            _context.Database.EnsureCreated();
+
+            // Assert
+            Assert.IsTrue(_context.Database.CanConnect());
+        }
+    }  
     
 }
 
