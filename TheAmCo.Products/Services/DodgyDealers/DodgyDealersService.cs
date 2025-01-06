@@ -16,7 +16,7 @@ namespace TheAmCo.Products.Services.DodgeyDealers
         public async Task<IEnumerable<TheAmCo.Products.Data.Products.Product>> GetProductsAsync()
         {
             var uri = "api/product";
-            int maxRetries = 25;
+            int maxRetries = 0;
             double delayFactor = 0.5;
 
             for (int attempt = 1; attempt <= maxRetries; attempt++)
@@ -40,8 +40,8 @@ namespace TheAmCo.Products.Services.DodgeyDealers
                 }
             }
 
-            // Throw an exception if all retry attempts fail
-            throw new HttpRequestException($"Failed to fetch products from DodgyDealers API after {maxRetries} attempts.");
+            // return empty list
+            return Enumerable.Empty<TheAmCo.Products.Data.Products.Product>();
         }
     }
 }

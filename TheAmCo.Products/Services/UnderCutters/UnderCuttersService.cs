@@ -41,7 +41,8 @@ namespace TheAmCo.Products.Services.UnderCutters
             }
 
             // Throw an exception if all retry attempts fail
-            throw new HttpRequestException($"Failed to fetch products from UnderCutters API after {maxRetries} attempts.");
+            
+            return Enumerable.Empty<TheAmCo.Products.Data.Products.Product>();
         }
     }
 }
