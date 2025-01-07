@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using ThAmCo.Products.Services.ProductsRepo;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ThAmCo.Products.Controllers;
 
@@ -15,7 +16,7 @@ public class ProductsController : ControllerBase
     {
         _productsRepo = productsRepo;
     }
-   [Authorize]
+
     [HttpGet("products")]
     public async Task<IActionResult> GetProducts()
     {

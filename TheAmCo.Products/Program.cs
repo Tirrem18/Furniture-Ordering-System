@@ -38,7 +38,7 @@ else
     builder.Services.AddHttpClient<IUnderCuttersService, UnderCuttersService>();
     builder.Services.AddHttpClient<IDodgyDealersService, DodgyDealersService>();
 }
-
+builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddDbContext<ProductsContext>(options =>
 {
     if (builder.Environment.IsDevelopment())
@@ -68,6 +68,7 @@ if (builder.Environment.IsDevelopment())
 {
     //builder.Services.AddSingleton<IProductsRepo, ProductRepoFake>();
     builder.Services.AddTransient<IProductsRepo, ProductsRepo>();
+    //Test
 }
 else
 {
@@ -100,19 +101,6 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-}
-IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
-{
-    return HttpPolicyExtensions
-        .HandleTransientHttpError() // Handle 5xx and 408 errors
-        .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.RequestTimeout)
-        .WaitAndRetryAsync(
-            retryCount: 3,
-            sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), // Exponential backoff
-            onRetry: (outcome, timespan, retryAttempt, context) =>
-            {
-                Console.WriteLine($"Retrying {context.PolicyKey}. Retry attempt {retryAttempt}. Delay: {timespan}");
-            });
 }
 
 app.UseHttpsRedirection();

@@ -29,7 +29,12 @@ namespace TheAmCo.Products.Data.Products
         else
         {
             // Use SQL Server for production
-            var connectionString = "Server=tcp:thamco.database.windows.net,1433;Initial Catalog=ThAmCo.Products;Persist Security Info=False;User ID=thamcoboss@thamco;Password=Password1;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
+            var connectionString = Environment.GetEnvironmentVariable("ProductsContext");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException("The connection string 'ProductsContext' was not found .");
+            }
+
             optionsBuilder.UseSqlServer(connectionString);
         }
 
