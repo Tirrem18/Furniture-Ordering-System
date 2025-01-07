@@ -68,6 +68,7 @@ if (builder.Environment.IsDevelopment())
 {
     //builder.Services.AddSingleton<IProductsRepo, ProductRepoFake>();
     builder.Services.AddTransient<IProductsRepo, ProductsRepo>();
+    //Test
 }
 else
 {
